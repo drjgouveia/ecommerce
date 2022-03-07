@@ -1,0 +1,61 @@
+{% extends "include/base.html" %}
+
+{% block title %}Register{% endblock %}
+{% block content %}
+    <div class="container">
+        <form action="{% url 'register' %}" method="post">
+            {% csrf_token %}
+            <div class="m-5">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Register</h5>
+                        {% if error_message %}
+                            <p class="bg-danger p-d ml-b">{{ error_message }}</p>
+                        {% endif %}
+                       
+                        <div class="form-group clearfix col-md">
+                            <label for="{{ form.username.id_for_label }}" class="control-label text-right">Username <span class="text-red">*</span>:</label>
+                            <div class="">
+                                {{ form.username }}
+                            </div>
+                        </div>
+                        <div class="form-group clearfix col-md">
+                            <label for="{{ form.email.id_for_label }}" class="control-label text-right">Email <span class="text-red">*</span>:</label>
+                            <div class="">
+                                {{ form.email }}
+                            </div>
+                        </div>
+                        <div class="form-group clearfix col-md">
+                            <label for="{{ form.password.id_for_label }}" class="control-label text-right">Password <span class="text-red">*</span>:</label>
+                            <div class="">
+                                {{ form.password }}
+                            </div>
+                        </div>
+                        <div class="form-group clearfix col-md">
+                            <label for="{{ form.password_repeat.id_for_label }}" class="control-label text-right">Confirm password:</label>
+                            <div class="">
+                                {{ form.password_repeat }}
+                            </div>
+                        </div>
+                        <div class="form-group clearfix col-md">
+                            <label for="{{ form.first_name.id_for_label }}" class="control-label text-right">First Name:</label>
+                            <div class="">
+                                {{ form.first_name }}
+                            </div>
+                        </div>
+                        <div class="form-group clearfix col-md">
+                            <label for="{{ form.last_name.id_for_label }}" class="control-label text-right">Last Name:</label>
+                            <div class="">
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-md-offset-4">
+                            <input type="submit" value="Register" class="btn btn-success"> &nbsp;or
+                            <a href="{% url 'login' %}">Login</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
