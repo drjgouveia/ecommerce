@@ -1,8 +1,87 @@
 {% extends "include/base.html" %}
+{% load static %}
 
 {% block title %}Homepage{% endblock %}
 {% block content %}
+    <script src="{% static 'js/homepage.js' %}"></script>
     <div class="container">
-        <h1>TEST</h1>
+        <div class="row m-5">
+            <div class="col-6">
+                <h3 class="mb-3">Products</h3>
+            </div>
+            <div class="col-6 text-right">
+                <a class="btn btn-primary mb-3 mr-1" href="#prodsCarousel" role="button" data-slide="prev">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+                <a class="btn btn-primary mb-3 " href="#prodsCarousel" role="button" data-slide="next">
+                    <i class="fa fa-arrow-right"></i>
+                </a>
+            </div>
+            <div id="prodsCarousel" class="carousel w-100 slide text-center m-auto" data-interval="false">
+                <div class="carousel-inner">
+                    {% if prods %}
+                        {% for prod in prods %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h4 class="card-title">{{ prod.name }}</h4>
+                                        <p class="card-text">{{ prod.price }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <div class="carousel-item {% if not prods %}active{% endif %}">
+                        <a href="#prod">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Add a new product</h4>
+                                    <p class="card-text">Press this card to add a new product.</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row m-5">
+            <div class="col-6">
+                <h3 class="mb-3">Sells</h3>
+            </div>
+            <div class="col-6 text-right">
+                <a class="btn btn-primary mb-3 mr-1" href="#sellsCarousel" role="button" data-slide="prev">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+                <a class="btn btn-primary mb-3 " href="#sellsCarousel" role="button" data-slide="next">
+                    <i class="fa fa-arrow-right"></i>
+                </a>
+            </div>
+            <div id="sellsCarousel" class="carousel w-100 slide text-center m-auto" data-interval="false">
+                <div class="carousel-inner">
+                    {% if sells %}
+                        {% for sell in sells %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h4 class="card-title">{{ sell.total }} €</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <div class="carousel-item {% if not sells %}active{% endif %}">
+                        <a href="#sell">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Add a new sell</h4>
+                                    <p class="card-text">Press this card to add a new sell.</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 {% endblock %}
