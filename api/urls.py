@@ -12,7 +12,7 @@ urlpatterns = [
     path('prod/<int:prod_id>', api.views.prod, name='prod_api'),
     path('sells/', api.views.sells, name='prod_api'),
     path('sell/<int:sell_id>', api.views.sell, name='prod_api'),
-    path('sells_details/', api.views.sells_details, name='sells_details_api'),
-    path('sells_detail/<int:sell_details_id>', api.views.sells_detail, name='sells_details_api'),
+    path('sells-details/', api.views.sells_details, name='sells_details_api'),
+    path('sells-detail/<int:sell_details_id>', api.views.sells_detail, name='sells_details_api'),
 ]
 
