@@ -3,6 +3,98 @@
 
 {% block title %}Homepage{% endblock %}
 {% block content %}
+    <div class="modal fade" id="productModal" tabindex="-1" role="dialog" aria-labelledby="productModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="productModalLabel">Product</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="prod_id_modal" value="">
+                    <div class="form-group">
+                        <label for="prod_name_modal">Product's name</label>
+                        <input type="text" class="form-control" id="prod_name_modal" name="prod_name_modal"
+                               placeholder="Enter the product's name">
+                    </div>
+                    <div class="form-group">
+                        <label for="prod_price_modal">Product's price (€)</label>
+                        <input type="number" min="0.00" step="0.1" class="form-control" id="prod_price_modal"
+                               name="prod_price" value="0.1" placeholder="Price">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button"
+                            onclick="modalProduct('{% url 'prods_api' %}', '{% url 'prod_api' prod_id=0 %}', document.getElementById('prod_id_modal').value)"
+                            class="btn btn-primary">
+                        Save changes
+                    </button>
+                    <button type="button" id="btn-delete-prod" onclick="deleteProduct('{% url 'prod_api' prod_id=0 %}', document.getElementById('prod_id_modal').value)"
+                            class="btn btn-danger d-none">Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="sellModal" tabindex="-1" role="dialog" aria-labelledby="sellModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="sellModalLabel">Sell</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center">
+                    <input type="hidden" id="sell_id_modal" value="">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <p>Name of the product</p>
+                            </div>
+                            <div class="col-md-3">
+                                <p>Price of the product</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p>Quantity</p>
+                            </div>
+                        </div>
+                        {% if prods %}
+                            {% for prod in prods %}
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <p>{{ prod.name }}</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p>{{ prod.price }} €</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input class="sells_details" data-price="{{ prod.price }}" id="{{ prod.id }}"
+                                               value="0.0" type="number" min="0.0" step="0.1">
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary"
+                            onclick="modalSell('{% url 'sells_api' %}', '{% url 'sell_api' sell_id=0 %}', document.getElementById('sell_id_modal').value)">
+                        Save changes
+                    </button>
+                    <button type="button" id="btn-delete-sell" onclick="deleteSell('{% url 'sell_api' sell_id=0 %}', document.getElementById('sell_id_modal').value)"
+                            class="btn btn-danger d-none">Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script src="{% static 'js/homepage.js' %}"></script>
     <div class="container">
         <div class="row m-5">
@@ -25,14 +117,24 @@
                                 <div class="card">
                                     <div class="card-body">
                                         <h4 class="card-title">{{ prod.name }}</h4>
-                                        <p class="card-text">{{ prod.price }}</p>
+                                        <p class="card-text">{{ prod.price|floatformat:2 }} €</p>
+                                        <div class="m-3">
+                                            <button class="btn btn-primary m-2"
+                                                    onclick="loadProductModal('{% url 'prod_api' prod_id=prod.id %}', '{{ prod.id }}')">
+                                                <i class="fa-solid fa-arrows-rotate fa-xl m-3"></i>
+                                            </button>
+                                            <button class="btn btn-danger m-2" onclick="deleteProduct('{% url 'prod_api' prod_id=0 %}', '{{ prod.id }}')">
+                                                <i class="fa-solid fa-trash fa-xl m-3"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         {% endfor %}
                     {% endif %}
                     <div class="carousel-item {% if not prods %}active{% endif %}">
-                        <a href="#prod">
+                        <a href="#prod" onclick="modalAddProduct('{% url 'prods_api' %}')" data-toggle="modal"
+                           data-target="#productModal">
                             <div class="card">
                                 <div class="card-body">
                                     <h4 class="card-title">Add a new product</h4>
@@ -63,14 +165,24 @@
                             <div class="carousel-item {% if forloop.first %}active{% endif %}">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h4 class="card-title">{{ sell.total }} €</h4>
+                                        <h4 class="card-title">{{ sell.total|floatformat:2 }} €</h4>
+                                        <input type="hidden" id="sell_id" value="{{ sell.id }}">
+                                        <div class="m-3">
+                                            <button class="btn btn-primary m-2"
+                                                    onclick="loadSellModal('{% url 'sell_api' sell_id=sell.id %}', '{{ sell.id }}')">
+                                                <i class="fa-solid fa-arrows-rotate fa-xl m-3"></i>
+                                            </button>
+                                            <button class="btn btn-danger m-2" onclick="deleteSell('{% url 'sell_api' sell_id=sell.id %}', '{{ sell.id }}')">
+                                                <i class="fa-solid fa-trash fa-xl m-3"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         {% endfor %}
                     {% endif %}
                     <div class="carousel-item {% if not sells %}active{% endif %}">
-                        <a href="#sell">
+                        <a href="#sell" onclick="modalAddSell()" data-toggle="modal" data-target="#sellModal">
                             <div class="card">
                                 <div class="card-body">
                                     <h4 class="card-title">Add a new sell</h4>

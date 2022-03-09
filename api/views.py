@@ -1,3 +1,4 @@
+import decimal
 import json
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse, QueryDict
@@ -12,12 +13,12 @@ from sells.models import Sell, SellDetails
 def prods(request):
     """
     View responsible for providing all Products available on the database (when a request is made) or create a new Product object (when a POST request is performed)
+
     :param request: request made by the user
     :return: returns JSON with what method of request was made, if it was successful or not, and provide the data (GET request) or the Product object ID (POST request). 
     """
     try:
         if request.method == "GET":
-            """ WORKING """
             data = []
             for prod in Product.objects.all():
                 data.append({
@@ -29,9 +30,8 @@ def prods(request):
             return JsonResponse({"method": request.method, "data": data, "success": True}, status=200)
 
         elif request.method == "POST":
-            """ WORKING """
             prod_name = request.POST.get("name", "")
-            prod_price = request.POST.get("price", 0.0)
+            prod_price = float(str(request.POST.get("price", 0.0)).replace(",", ".").strip())
             prod = Product(name=prod_name, price=prod_price)
             prod.save()
 
@@ -139,11 +139,16 @@ def sells(request):
 
         elif request.method == "POST":
             sell = Sell()
-            sell.total = float(request.POST.get("total", 0.0))
             sell.save()
+            total = 0.0
+            sell.sell_details.clear()
             for sells_details_id in str(request.POST.get("sells_details", "")).split(","):
-                sell.sell_details.add(SellDetails.objects.get(pk=int(sells_details_id)))
+                if sells_details_id.isdigit():
+                    detail = SellDetails.objects.get(pk=int(sells_details_id))
+                    total += total + (float(detail.product.price) * float(detail.quantity))
+                    sell.sell_details.add(detail)
 
+            sell.total = total
             sell.save()
 
             return JsonResponse({"method": request.method, "sell_id": sell.id, "success": True}, status=200)
@@ -192,13 +197,14 @@ def sell(request, sell_id):
             body = QueryDict(request.body)
             sell = Sell.objects.get(pk=sell_id)
 
-            if "total" in body:
-                prod.total = float(body.get("total"))
-
+            total = 0.0
+            sell.sell_details.clear()
             for sells_details_id in str(body.get("sells_details", "")).split(","):
-                if Sell.objects.get(pk=int(sells_details_id)) not in sell.sell_details.all():
-                    sell.sell_details.add(Sell.objects.get(pk=int(sells_details_id)))
+                detail = SellDetails.objects.get(pk=int(sells_details_id))
+                total = total + (float(detail.product.price) * float(detail.quantity))
+                sell.sell_details.add(detail)
 
+            sell.total = total
             sell.save()
             return JsonResponse({"method": request.method, "success": True}, status=200)
 
@@ -241,16 +247,19 @@ def sells_details(request):
         elif request.method == "POST":
             detail = SellDetails()
 
-            detail.total = float(request.POST.get("total", 0.0))
-            detail.quantity = float(request.POST.get("qty", 0.0))
-            try:
-                detail.product = Product.objects.get(pk=int(request.POST.get("prod_id", "")))
-            except Product.DoesNotExist:
-                print("HERE")
-                return JsonResponse({"method": request.method, "data": [], "success": False}, status=500)
+            detail.quantity = float(str(request.POST.get("qty", 0.0)).replace(",", ".").strip())
+            if detail.quantity > 0:
+                try:
+                    detail.product = Product.objects.get(pk=int(request.POST.get("prod_id", "")))
+                    detail.total = float(detail.quantity) * float(detail.product.price)
+                except Product.DoesNotExist:
+                    return JsonResponse({"method": request.method, "data": [], "success": False}, status=500)
 
-            detail.save()
-            return JsonResponse({"method": request.method, "sell_detail_id": detail.id, "success": True}, status=200)
+                detail.save()
+                return JsonResponse({"method": request.method, "sell_detail_id": detail.id, "success": True}, status=200)
+
+            else:
+                return JsonResponse({"method": request.method, "data": [], "success": False}, status=500)
         else:
             return JsonResponse({"method": request.method, "data": [], "success": False}, status=500)
     except SellDetails.DoesNotExist:

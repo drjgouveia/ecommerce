@@ -10,9 +10,9 @@ from ecommerce import views
 urlpatterns = [
     path('prods/', api.views.prods, name='prods_api'),
     path('prod/<int:prod_id>', api.views.prod, name='prod_api'),
-    path('sells/', api.views.sells, name='prod_api'),
-    path('sell/<int:sell_id>', api.views.sell, name='prod_api'),
+    path('sells/', api.views.sells, name='sells_api'),
+    path('sell/<int:sell_id>', api.views.sell, name='sell_api'),
     path('sells-details/', api.views.sells_details, name='sells_details_api'),
-    path('sells-detail/<int:sell_details_id>', api.views.sells_detail, name='sells_details_api'),
+    path('sells-detail/<int:sell_details_id>', api.views.sells_detail, name='sells_detail_api'),
 ]
 
