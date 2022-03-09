@@ -6,7 +6,7 @@ class Sell(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     id = models.AutoField(primary_key=True, editable=False)
     sell_details = models.ManyToManyField(to="sells.SellDetails")
-    total = models.DecimalField(max_digits=7, decimal_places=2)
+    total = models.DecimalField(max_digits=7, decimal_places=2, default=0.0)
 
 
 class SellDetails(models.Model):
