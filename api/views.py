@@ -1,5 +1,7 @@
 import decimal
 import json
+
+import django.db.utils
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse, QueryDict
 from django.views.decorators.csrf import csrf_exempt
@@ -140,12 +142,20 @@ def sells(request):
             sell.user_id = request.user
             sell.save()
             total = 0.0
-            sell.sell_details.clear()
+            try:
+                sell.sell_details.clear()
+                sell.save()
+            except django.db.utils.OperationalError:
+                # When this error is raised, this means that the sell.sell_details is already empty
+                pass
+
             for sells_details_id in str(request.POST.get("sells_details", "")).split(","):
                 if sells_details_id.isdigit():
                     detail = SellDetails.objects.get(pk=int(sells_details_id))
+                    print(detail)
                     total += (float(detail.product.price) * float(detail.quantity))
                     sell.sell_details.add(detail)
+                    sell.save()
 
             sell.total = total
             sell.save()
@@ -196,11 +206,19 @@ def sell(request, sell_id):
             sell = Sell.objects.get(pk=sell_id)
 
             total = 0.0
-            sell.sell_details.clear()
+            try:
+                sell.sell_details.clear()
+                sell.save()
+            except django.db.utils.OperationalError:
+                # When this error is raised, this means that the sell.sell_details is already empty
+                pass
+
             for sells_details_id in str(body.get("sells_details", "")).split(","):
-                detail = SellDetails.objects.get(pk=int(sells_details_id))
-                total += (float(detail.product.price) * float(detail.quantity))
-                sell.sell_details.add(detail)
+                if sells_details_id.isdigit():
+                    detail = SellDetails.objects.get(pk=int(sells_details_id))
+                    total += (float(detail.product.price) * float(detail.quantity))
+                    sell.sell_details.add(detail)
+                    sell.save()
 
             sell.total = total
             sell.save()
@@ -277,6 +295,7 @@ def sells_detail(request, sell_details_id):
             data.append({
                 "id": detail.id,
                 "total": detail.total,
+                "prod_id": detail.product.id,
                 "prod_price": detail.product.price,
                 "prod_name": detail.product.name,
                 "qty": detail.quantity,
@@ -288,11 +307,10 @@ def sells_detail(request, sell_details_id):
             detail = SellDetails.objects.get(pk=sell_details_id)
             body = QueryDict(request.body)
 
-            if "total" in body:
-                detail.total = float(body.get("total"))
-
             if "qty" in body:
                 detail.quantity = float(body.get("qty"))
+
+            detail.total = float(body.get("qty")) * float(detail.product.price)
 
             detail.save()
             return JsonResponse({"method": request.method, "sell_details_id": sell_details_id, "success": True}, status=200)

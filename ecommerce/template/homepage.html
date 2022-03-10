@@ -85,7 +85,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary"
-                            onclick="modalSell('{% url 'sells_api' %}', '{% url 'sell_api' sell_id=0 %}', '{% url 'sells_details_api' %}', document.getElementById('sell_id_modal').value)">
+                            onclick="modalSell('{% url 'sells_api' %}', '{% url 'sell_api' sell_id=0 %}', '{% url 'sells_details_api' %}', '{% url 'sells_detail_api' sell_details_id=0 %}', document.getElementById('sell_id_modal').value)">
                         Save changes
                     </button>
                     <button type="button" id="btn-delete-sell" onclick="deleteSell('{% url 'sell_api' sell_id=0 %}', document.getElementById('sell_id_modal').value)"

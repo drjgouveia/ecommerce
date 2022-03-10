@@ -32,7 +32,7 @@ function addNewProduct(url) {
         },
         async: true,
         success: function (response) {
-            console.log("addNewProduct", response);
+            // console.log("addNewProduct", response);
             $('#productModal').modal('toggle');
             $('#prod_id_modal').val("");
             $('#prod_name_modal').val("");
@@ -42,7 +42,7 @@ function addNewProduct(url) {
             window.location.reload();
         },
         error: function (response) {
-            console.error("addNewProduct", response);
+            // console.error("addNewProduct", response);
             $('#productModal').modal('toggle');
         },
     });
@@ -53,7 +53,7 @@ function updateProduct(url) {
     // Receives the urlProds, which is the URL for the API
     // returns nothing
 
-    console.log(getCookie('csrftoken'));
+    // console.log(getCookie('csrftoken'));
     $.ajax({
         url: url,
         type: "PUT",
@@ -68,7 +68,7 @@ function updateProduct(url) {
             $('#prod_name_modal').val("");
             $('#prod_price_modal').val("");
             $("#btn-delete-prod").addClass("d-none");
-            console.log("updateProduct", response);
+            // console.log("updateProduct", response);
             $('#productModal').modal('toggle');
             window.location.reload();
         },
@@ -77,7 +77,7 @@ function updateProduct(url) {
             $('#prod_name_modal').val("");
             $('#prod_price_modal').val("");
             $("#btn-delete-prod").addClass("d-none");
-            console.error("updateProduct", response);
+            // console.error("updateProduct", response);
             $('#productModal').modal('toggle');
         },
     });
@@ -115,7 +115,7 @@ function loadProductModal(url, prod_id) {
         type: "GET",
         async: true,
         success: function (response) {
-            console.log(response);
+            // console.log(response);
             $("#btn-delete-prod").removeClass("d-none");
             $("#prod_id_modal").val(prod_id);
             $("#prod_name_modal").val(response["data"][0]["name"]);
@@ -124,7 +124,7 @@ function loadProductModal(url, prod_id) {
         },
         error: function (response) {
             $("#btn-delete-prod").addClass("d-none");
-            console.error(response);
+            // console.error(response);
         },
     });
 }
@@ -140,14 +140,14 @@ function deleteProduct(url, prod_id) {
         async: true,
         headers: {'X-CSRFToken': getCookie('csrftoken')},
         success: function (response) {
-            console.log("deleteProduct", response);
+            // console.log("deleteProduct", response);
             $('#productModal').modal('hide');
             $("#btn-delete-prod").addClass("d-none");
             $("#prod_id_modal").val("");
             window.location.reload();
         },
         error: function (response) {
-            console.error("deleteProduct", response);
+            // console.error("deleteProduct", response);
             $('#productModal').modal('hide');
         },
     });
@@ -159,23 +159,23 @@ async function addNewSell(url, urlSellsDetails) {
     // returns nothing
 
     let all_details = document.getElementsByClassName("sells_details");
-    console.log("/0", all_details);
+    // console.log("/0", all_details);
     let vals = [];
     for (var i = 0; i < all_details.length; i++) {
         var temp = await addNewSellDetail(urlSellsDetails, all_details[i].value, all_details[i].id);
-        console.log("0.5", temp);
+        // console.log("0.5", temp);
         vals.push(temp);
     }
 
     $.when(null, vals).done(function () {
         let sells_details = "";
-        console.log("1", vals);
+        // console.log("1", vals);
         vals.forEach((item) => {
             sells_details += item + ",";
-            console.log("2", sells_details);
+            // console.log("2", sells_details);
         });
         sells_details.slice(0, sells_details.length - 1);
-        console.log("3", sells_details);
+        // console.log("3", sells_details);
 
         $.ajax({
             url: url,
@@ -186,11 +186,11 @@ async function addNewSell(url, urlSellsDetails) {
             },
             async: true,
             success: function (response) {
-                console.log("addNewSell", response);
+                // console.log("addNewSell", response);
                 window.location.reload();
             },
             error: function (response) {
-                console.error("addNewSell", response);
+                // console.error("addNewSell", response);
                 window.location.reload();
             },
         });
@@ -198,69 +198,69 @@ async function addNewSell(url, urlSellsDetails) {
 }
 
 function getSellsDetailsFromSellID(url, sell_id) {
-    console.log("getSellsDetailsFromSellID", urlSell, sell_id);
-
-    return $.ajax({
-        url: url.replace("/0", "/" + sell_id),
-        type: "GET",
-        async: true,
-        success: function (response) {
-            return response["data"][0];
-        },
-        error: function (response) {
-            return response["success"];
-        },
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            url: url.replace("/0", "/" + sell_id),
+            type: "GET",
+            async: true,
+            success: function (response) {
+                // console.log(response);
+                resolve(response["data"][0]);
+            },
+            error: function (response) {
+                reject(response["success"]);
+            },
+        });
     });
 }
 
-function updateSell(urlSell, sell_id) {
-    // This function is responsible for updating an already existing product through the CRUDs API
-    // Receives the "urlProds", which is the URL for the API
+function updateSell(urlSell, urlSellDetail, sell_id) {
+    // This function is responsible for updating an already existing sell through the CRUDs API
+    // Receives the "urlSell", which is the URL for the API
     // returns nothing
 
-    console.log("updateSell", urlSell, sell_id);
-    let all_details = getSellsDetailsFromSellID(urlSell, sell_id);
-    $.when(null, all_details).done(function () {
-        console.log("0.0", all_details);
-
+    // console.log("updateSell", urlSell, sell_id);
+    getSellsDetailsFromSellID(urlSell, sell_id).then((promise) => {
         let vals = [];
-        for (var i = 0; i < all_details["sells_details"].length; i++) {
-            vals.push(all_details["sells_details"][i]["id"]);
+        let promises_wait = [];
+        for (var i = 0; i < promise.sells_details.length; i++) {
+            promises_wait.push(updateSellDetail(urlSellDetail, promise["sells_details"][i]["id"], promise["sells_details"][i]["prod_id"]));
+            vals.push(promise["sells_details"][i]["id"]);
         }
 
-        let sells_details = "";
-        console.log("0.1", vals);
-        vals.forEach((item) => {
-            sells_details += item + ",";
-            console.log("0.2", sells_details);
-        });
-        sells_details.slice(0, sells_details.length - 1);
-        console.log("0.3", sells_details);
+        $.when(null, promises_wait).done(function () {
+            let sells_details = "";
+            // console.log("0.1", vals);
+            vals.forEach((item) => {
+                sells_details += item + ",";
+                // console.log("0.2", sells_details);
+            });
+            sells_details.slice(0, sells_details.length - 1);
+            // console.log("0.3", sells_details);
 
-        $.ajax({
-            url: urlSell.replace("/0", "/" + sell_id),
-            type: "PUT",
-            headers: {'X-CSRFToken': getCookie('csrftoken')},
-            data: {
-                "qty": document.getElementById("prod_name_modal").value,
-                "price": document.getElementById("prod_price_modal").value,
-            },
-            async: true,
-            success: function (response) {
-                $('#sell_id_modal').val("");
-                $("#btn-delete-sell").addClass("d-none");
-                console.log("updateProduct", response);
-                $('#sellModal').modal('hide');
-                window.location.reload();
-            },
-            error: function (response) {
-                $('#sell_id_modal').val("");
-                $("#btn-delete-prod").addClass("d-none");
-                console.error("updateProduct", response);
-            },
-        });
-
-    })
+            $.ajax({
+                url: urlSell.replace("/0", "/" + sell_id),
+                type: "PUT",
+                headers: {'X-CSRFToken': getCookie('csrftoken')},
+                data: {
+                    "sells_details": sells_details,
+                },
+                async: true,
+                success: function (response) {
+                    $('#sell_id_modal').val("");
+                    $("#btn-delete-sell").addClass("d-none");
+                    // console.log("updateProduct", response);
+                    $('#sellModal').modal('hide');
+                    window.location.reload();
+                },
+                error: function (response) {
+                    $('#sell_id_modal').val("");
+                    $("#btn-delete-prod").addClass("d-none");
+                    // console.error("updateProduct", response);
+                },
+            });
+        })
+    });
 }
 
 function modalAddSell() {
@@ -284,13 +284,13 @@ function loadSellModal(url, sell_id) {
         type: "GET",
         async: true,
         success: function (response) {
-            console.log(response);
+            // console.log(response);
             $("#btn-delete-sell").removeClass("d-none");
             $("#sell_id_modal").val(sell_id);
             let sells_details = document.getElementsByClassName("sells_details");
             for (let i = 0; i < sells_details.length; i++) {
                 for (let u = 0; u < response["data"][0]["sells_details"].length; u++) {
-                    console.log("TEST", sells_details[i].id, response["data"][0]["sells_details"][u]["prod_id"]);
+                    // console.log("TEST", sells_details[i].id, response["data"][0]["sells_details"][u]["prod_id"]);
                     if (parseInt(sells_details[i].id) === response["data"][0]["sells_details"][u]["prod_id"]) {
                         sells_details[i].value = response["data"][0]["sells_details"][u]["qty"];
                     }
@@ -302,12 +302,12 @@ function loadSellModal(url, sell_id) {
         error: function (response) {
             $("#btn-delete-sell").addClass("d-none");
             $('#sellModal').modal('toggle');
-            console.error(response);
+            // console.error(response);
         },
     });
 }
 
-function modalSell(urlSells, urlSell, urlSellsDetails, sell_id) {
+function modalSell(urlSells, urlSell, urlSellsDetails, urlSellDetail, sell_id) {
     // This function is responsible for choosing what/how process the request (add or update sell) through the CRUDs API
     // Receives the "urlSells", "urlSell" and "urlSellDetails", which are the URLs for the respective APIs. Receives the sell ID (sell_id) in case of using the "urlSell" url.
     // returns nothing
@@ -316,7 +316,7 @@ function modalSell(urlSells, urlSell, urlSellsDetails, sell_id) {
         addNewSell(urlSells, urlSellsDetails);
     } else {
         $("#btn-delete-sell").removeClass("d-none");
-        updateSell(urlSell.replace("/0", "/" + sell_id));
+        updateSell(urlSell.replace("/0", "/" + sell_id), urlSellDetail, sell_id);
     }
 }
 
@@ -331,14 +331,14 @@ function deleteSell(url, sell_id) {
         async: true,
         headers: {'X-CSRFToken': getCookie('csrftoken')},
         success: function (response) {
-            console.log("deleteSell", response);
+            // console.log("deleteSell", response);
             $('#sellModal').modal('hide');
             $("#btn-delete-sell").addClass("d-none");
             $("#sell_id_modal").val("");
             window.location.reload();
         },
         error: function (response) {
-            console.error("deleteProduct", response);
+            // console.error("deleteProduct", response);
             $('#sellModal').modal('hide');
         },
     });
@@ -357,11 +357,35 @@ function addNewSellDetail(url, qty, prod_id) {
                 "prod_id": prod_id,
             },
             success: function (response) {
-                console.log("addNewSellDetail", response["sell_detail_id"]);
+                // console.log("addNewSellDetail", response["sell_detail_id"]);
                 resolve(response["sell_detail_id"]);
             },
             error: function (response) {
-                console.error("addNewSellDetail", response);
+                // console.error("addNewSellDetail", response);
+                reject(response["success"]);
+            },
+        });
+    });
+}
+
+function updateSellDetail(url, sell_detail_id, prod_id) {
+    // This function is responsible for adding a new sell detail through the CRUDs API
+    // returns the sell detail ID on success
+    return new Promise((resolve, reject) => {
+        // console.log("updateSellDetail", document.getElementById(prod_id).value);
+        $.ajax({
+            url: url.replace("/0", "/" + sell_detail_id),
+            type: "PUT",
+            headers: {'X-CSRFToken': getCookie('csrftoken')},
+            data: {
+                "qty": document.getElementById(prod_id).value,
+            },
+            success: function (response) {
+                // console.log("addNewSellDetail", response["sell_detail_id"]);
+                resolve(response["sell_detail_id"]);
+            },
+            error: function (response) {
+                // console.error("addNewSellDetail", response);
                 reject(response["success"]);
             },
         });

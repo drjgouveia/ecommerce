@@ -20,7 +20,7 @@
 
 <body class="override">
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="{% url 'homepage' %}">FruITore</a>
+    <a class="navbar-brand" href="{% url 'homepage' %}">FruITore, {% if request.user.is_authenticated %}{{ user.username }}{% endif %}</a>
 
     <div class="form-inline ml-auto">
         {% if request.user.is_authenticated %}
