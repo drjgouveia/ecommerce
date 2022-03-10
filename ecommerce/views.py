@@ -15,6 +15,6 @@ def homepage(request):
     :param request: user request
     :return: returns the page with the rendered information
     """
-    prods = Product.objects.all()
-    sells = Sell.objects.all()
+    prods = Product.objects.all().filter(user_id=request.user)
+    sells = Sell.objects.all().filter(user_id=request.user)
     return render(request, 'homepage.html', {"prods": prods, "sells": sells})

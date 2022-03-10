@@ -85,7 +85,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary"
-                            onclick="modalSell('{% url 'sells_api' %}', '{% url 'sell_api' sell_id=0 %}', document.getElementById('sell_id_modal').value)">
+                            onclick="modalSell('{% url 'sells_api' %}', '{% url 'sell_api' sell_id=0 %}', '{% url 'sells_details_api' %}', document.getElementById('sell_id_modal').value)">
                         Save changes
                     </button>
                     <button type="button" id="btn-delete-sell" onclick="deleteSell('{% url 'sell_api' sell_id=0 %}', document.getElementById('sell_id_modal').value)"
@@ -167,6 +167,11 @@
                                     <div class="card-body">
                                         <h4 class="card-title">{{ sell.total|floatformat:2 }} €</h4>
                                         <input type="hidden" id="sell_id" value="{{ sell.id }}">
+                                        {% if sell.sell_details %}
+                                            {% for sell_detail in sell.sell_details.all %}
+                                                <p class="card-text">{{ sell_detail.product.name }} - {{ sell_detail.quantity }} x {{ sell_detail.product.price|floatformat:2 }}</p>
+                                            {% endfor %}
+                                        {% endif %}
                                         <div class="m-3">
                                             <button class="btn btn-primary m-2"
                                                     onclick="loadSellModal('{% url 'sell_api' sell_id=sell.id %}', '{{ sell.id }}')">

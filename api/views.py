@@ -8,8 +8,7 @@ from prods.models import Product
 from sells.models import Sell, SellDetails
 
 
-# @login_required(login_url="auth/login")
-@csrf_exempt
+@login_required(login_url="auth/login")
 def prods(request):
     """
     View responsible for providing all Products available on the database (when a request is made) or create a new Product object (when a POST request is performed)
@@ -33,6 +32,7 @@ def prods(request):
             prod_name = request.POST.get("name", "")
             prod_price = float(str(request.POST.get("price", 0.0)).replace(",", ".").strip())
             prod = Product(name=prod_name, price=prod_price)
+            prod.user_id = request.user
             prod.save()
 
             return JsonResponse({"method": request.method, "prod_id": prod.id, "success": True}, status=200)
@@ -43,8 +43,7 @@ def prods(request):
     return HttpResponse(status=500)
 
 
-# @login_required(login_url="auth/login")
-@csrf_exempt
+@login_required(login_url="auth/login")
 def prod(request, prod_id):
     """
     View responsible for the proving of the data of a Product (when a GET request is performed), update an object with the data provided (when a PUT request if made) or delete an object (when a DELETE request is made).
@@ -105,8 +104,7 @@ def prod(request, prod_id):
     return HttpResponse(status=500)
 
 
-# @login_required(login_url="auth/login")
-@csrf_exempt
+@login_required(login_url="auth/login")
 def sells(request):
     """
     View responsible for providing all Sells available on the database (when a request is made) or create a new Sell object (when a POST request is performed)
@@ -139,13 +137,14 @@ def sells(request):
 
         elif request.method == "POST":
             sell = Sell()
+            sell.user_id = request.user
             sell.save()
             total = 0.0
             sell.sell_details.clear()
             for sells_details_id in str(request.POST.get("sells_details", "")).split(","):
                 if sells_details_id.isdigit():
                     detail = SellDetails.objects.get(pk=int(sells_details_id))
-                    total += total + (float(detail.product.price) * float(detail.quantity))
+                    total += (float(detail.product.price) * float(detail.quantity))
                     sell.sell_details.add(detail)
 
             sell.total = total
@@ -160,8 +159,7 @@ def sells(request):
         return JsonResponse({"method": request.method, "data": [], "success": False}, status=500)
 
 
-# @login_required(login_url="auth/login")
-@csrf_exempt
+@login_required(login_url="auth/login")
 def sell(request, sell_id):
     """
     View responsible for the proving of the data of a sell (when a GET request is performed), update an object with the data provided (when a PUT request if made) or delete an object (when a DELETE request is made).
@@ -201,7 +199,7 @@ def sell(request, sell_id):
             sell.sell_details.clear()
             for sells_details_id in str(body.get("sells_details", "")).split(","):
                 detail = SellDetails.objects.get(pk=int(sells_details_id))
-                total = total + (float(detail.product.price) * float(detail.quantity))
+                total += (float(detail.product.price) * float(detail.quantity))
                 sell.sell_details.add(detail)
 
             sell.total = total
@@ -219,8 +217,7 @@ def sell(request, sell_id):
         return JsonResponse({"method": request.method, "data": [], "success": False}, status=500)
 
 
-# @login_required(login_url="auth/login")
-@csrf_exempt
+@login_required(login_url="auth/login")
 def sells_details(request):
     """
     View responsible for providing all Sells DEetails available on the database (when a request is made) or create a new Sell Detail object (when a POST request is performed)
@@ -248,26 +245,22 @@ def sells_details(request):
             detail = SellDetails()
 
             detail.quantity = float(str(request.POST.get("qty", 0.0)).replace(",", ".").strip())
-            if detail.quantity > 0:
-                try:
-                    detail.product = Product.objects.get(pk=int(request.POST.get("prod_id", "")))
-                    detail.total = float(detail.quantity) * float(detail.product.price)
-                except Product.DoesNotExist:
-                    return JsonResponse({"method": request.method, "data": [], "success": False}, status=500)
-
-                detail.save()
-                return JsonResponse({"method": request.method, "sell_detail_id": detail.id, "success": True}, status=200)
-
-            else:
+            try:
+                detail.product = Product.objects.get(pk=int(request.POST.get("prod_id", "")))
+                detail.total = float(detail.quantity) * float(detail.product.price)
+            except Product.DoesNotExist:
                 return JsonResponse({"method": request.method, "data": [], "success": False}, status=500)
+
+            detail.save()
+            return JsonResponse({"method": request.method, "sell_detail_id": detail.id, "success": True}, status=200)
+
         else:
             return JsonResponse({"method": request.method, "data": [], "success": False}, status=500)
     except SellDetails.DoesNotExist:
         return JsonResponse({"method": request.method, "data": [], "success": False}, status=500)
 
 
-# @login_required(login_url="auth/login")
-@csrf_exempt
+@login_required(login_url="auth/login")
 def sells_detail(request, sell_details_id):
     """
     View responsible for the proving of the data of a sell detail (when a GET request is performed), update an object with the data provided (when a PUT request if made) or delete an object (when a DELETE request is made).

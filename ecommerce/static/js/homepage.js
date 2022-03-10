@@ -1,3 +1,22 @@
+function getCookie(name) {
+    // This function is responsible to get the cookie value from the cookie that has the "name" variable in its name
+    // return the cookie value
+
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 function addNewProduct(url) {
     // This function is responsible for adding a new product through the CRUDs API
     // Receives the urlProds, which is the URL for the API
@@ -6,6 +25,7 @@ function addNewProduct(url) {
     $.ajax({
         url: url,
         type: "POST",
+        headers: {'X-CSRFToken': getCookie('csrftoken')},
         data: {
             "name": document.getElementById("prod_name_modal").value,
             "price": document.getElementById("prod_price_modal").value,
@@ -33,9 +53,11 @@ function updateProduct(url) {
     // Receives the urlProds, which is the URL for the API
     // returns nothing
 
+    console.log(getCookie('csrftoken'));
     $.ajax({
         url: url,
         type: "PUT",
+        headers: {'X-CSRFToken': getCookie('csrftoken')},
         data: {
             "name": document.getElementById("prod_name_modal").value,
             "price": document.getElementById("prod_price_modal").value,
@@ -70,7 +92,7 @@ function modalProduct(urlProds, urlProd, prod_id) {
         addNewProduct(urlProds);
     } else {
         $("#btn-delete-prod").removeClass("d-none");
-        updateProduct(urlProd.replace("0", prod_id));
+        updateProduct(urlProd.replace("/0", "/" + prod_id));
     }
 }
 
@@ -113,9 +135,10 @@ function deleteProduct(url, prod_id) {
     // returns nothing
 
     $.ajax({
-        url: url.replace("0", prod_id),
+        url: url.replace("/0", "/" + prod_id),
         type: "DELETE",
         async: true,
+        headers: {'X-CSRFToken': getCookie('csrftoken')},
         success: function (response) {
             console.log("deleteProduct", response);
             $('#productModal').modal('hide');
@@ -132,10 +155,11 @@ function deleteProduct(url, prod_id) {
 
 async function addNewSell(url, urlSellsDetails) {
     // This function is responsible for adding a new sell, creating its sells details before, through the CRUDs API
+    // Receives the "url" and "urlSellsDetails", which are the URLs for the CRUDs API
     // returns nothing
 
     let all_details = document.getElementsByClassName("sells_details");
-    console.log("0", all_details);
+    console.log("/0", all_details);
     let vals = [];
     for (var i = 0; i < all_details.length; i++) {
         var temp = await addNewSellDetail(urlSellsDetails, all_details[i].value, all_details[i].id);
@@ -156,25 +180,28 @@ async function addNewSell(url, urlSellsDetails) {
         $.ajax({
             url: url,
             type: "POST",
+            headers: {'X-CSRFToken': getCookie('csrftoken')},
             data: {
                 "sells_details": sells_details,
             },
             async: true,
             success: function (response) {
                 console.log("addNewSell", response);
-                //window.location.reload();
+                window.location.reload();
             },
             error: function (response) {
                 console.error("addNewSell", response);
-                //window.location.reload();
+                window.location.reload();
             },
         });
     });
 }
 
 function getSellsDetailsFromSellID(url, sell_id) {
-    $.ajax({
-        url: url.replace("0", sell_id),
+    console.log("getSellsDetailsFromSellID", urlSell, sell_id);
+
+    return $.ajax({
+        url: url.replace("/0", "/" + sell_id),
         type: "GET",
         async: true,
         success: function (response) {
@@ -186,24 +213,34 @@ function getSellsDetailsFromSellID(url, sell_id) {
     });
 }
 
-function updateSell(urlUpdateSell, urlGetSell) {
+function updateSell(urlSell, sell_id) {
     // This function is responsible for updating an already existing product through the CRUDs API
-    // Receives the urlProds, which is the URL for the API
+    // Receives the "urlProds", which is the URL for the API
     // returns nothing
 
-    let all_details = getSellsDetailsFromSellID(urlGetSell);
-    console.log("0", all_details);
-    let vals = [];
-    for (var i = 0; i < all_details.length; i++) {
-        var temp = await(urlSellsDetails, all_details[i].value, all_details[i].id);
-        console.log("0.5", temp);
-        vals.push(temp);
-    }
+    console.log("updateSell", urlSell, sell_id);
+    let all_details = getSellsDetailsFromSellID(urlSell, sell_id);
+    $.when(null, all_details).done(function () {
+        console.log("0.0", all_details);
 
-    $.when(null, vals).done(function () {
+        let vals = [];
+        for (var i = 0; i < all_details["sells_details"].length; i++) {
+            vals.push(all_details["sells_details"][i]["id"]);
+        }
+
+        let sells_details = "";
+        console.log("0.1", vals);
+        vals.forEach((item) => {
+            sells_details += item + ",";
+            console.log("0.2", sells_details);
+        });
+        sells_details.slice(0, sells_details.length - 1);
+        console.log("0.3", sells_details);
+
         $.ajax({
-            url: urlUpdateSell,
+            url: urlSell.replace("/0", "/" + sell_id),
             type: "PUT",
+            headers: {'X-CSRFToken': getCookie('csrftoken')},
             data: {
                 "qty": document.getElementById("prod_name_modal").value,
                 "price": document.getElementById("prod_price_modal").value,
@@ -213,19 +250,17 @@ function updateSell(urlUpdateSell, urlGetSell) {
                 $('#sell_id_modal').val("");
                 $("#btn-delete-sell").addClass("d-none");
                 console.log("updateProduct", response);
-                $('#sellModal').modal('toggle');
+                $('#sellModal').modal('hide');
                 window.location.reload();
             },
             error: function (response) {
-                $('#prod_id_modal').val("");
-                $('#prod_name_modal').val("");
-                $('#prod_price_modal').val("");
+                $('#sell_id_modal').val("");
                 $("#btn-delete-prod").addClass("d-none");
                 console.error("updateProduct", response);
-                $('#productModal').modal('toggle');
             },
         });
-    });
+
+    })
 }
 
 function modalAddSell() {
@@ -272,16 +307,16 @@ function loadSellModal(url, sell_id) {
     });
 }
 
-function modalSell(urlSells, urlSell, urlSellsDetails, urlSellDetails, sell_id) {
+function modalSell(urlSells, urlSell, urlSellsDetails, sell_id) {
     // This function is responsible for choosing what/how process the request (add or update sell) through the CRUDs API
-    // Receives the "urlProds" and "urlProds", which are the URLs for the respective APIs. Receives the sell ID (sell_id) in case of using the "urlProd" url.
+    // Receives the "urlSells", "urlSell" and "urlSellDetails", which are the URLs for the respective APIs. Receives the sell ID (sell_id) in case of using the "urlSell" url.
     // returns nothing
 
     if (sell_id === "") {
-        addNewSell(urlSells, urlSellDetails);
+        addNewSell(urlSells, urlSellsDetails);
     } else {
         $("#btn-delete-sell").removeClass("d-none");
-        updateSell(urlSell.replace("0", sell_id));
+        updateSell(urlSell.replace("/0", "/" + sell_id));
     }
 }
 
@@ -291,9 +326,10 @@ function deleteSell(url, sell_id) {
     // returns nothing
 
     $.ajax({
-        url: url.replace("0", sell_id),
+        url: url.replace("/0", "/" + sell_id),
         type: "DELETE",
         async: true,
+        headers: {'X-CSRFToken': getCookie('csrftoken')},
         success: function (response) {
             console.log("deleteSell", response);
             $('#sellModal').modal('hide');
@@ -315,6 +351,7 @@ function addNewSellDetail(url, qty, prod_id) {
         $.ajax({
             url: url,
             type: "POST",
+            headers: {'X-CSRFToken': getCookie('csrftoken')},
             data: {
                 "qty": qty,
                 "prod_id": prod_id,
