@@ -43,6 +43,8 @@ To run a docker container with sample data, use this:
 docker run --rm -it -p 8800:8800 $(docker build -q --build-arg loadsample=true .)
 `
 
+To access the app, just go to localhost or 127.0.0.1 and use the port 8800
+
 ## A bit about the app and folder structure
 
 The [ecommerce](ecommerce) folder is the core. The [views.py](ecommerce/views.py) file is responsible for the loading of the homepage. The [settings](ecommerce/settings.py) file is there, in conjunction with the [template](ecommerce/template) folder, that contains all the templates for the pages (like the base template for all pages, etc).
