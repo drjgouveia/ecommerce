@@ -31,6 +31,8 @@ demo : diogo2002
 
 ### The Docker way
 
+(I will assume that docker is already up and running)
+
 To run a docker container with an empty database, use this:
 `
 docker run --rm -it -p 8800:8800 $(docker build -q --build-arg loadsample=false .)
