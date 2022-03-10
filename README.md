@@ -4,8 +4,6 @@ Hope you like it :)
 
 ## How to run
 
----
-
 There are 2 ways to run this, with python 3 and with Docker
 
 ### The Python way
@@ -44,8 +42,6 @@ docker run --rm -it -p 8800:8800 $(docker build -q --build-arg loadsample=true .
 `
 
 ## A bit about the app and folder structure
-
-----
 
 The [ecommerce](ecommerce) folder is the core. The [views.py](ecommerce/views.py) file is responsible for the loading of the homepage. The [settings](ecommerce/settings.py) file is there, in conjunction with the [template](ecommerce/template) folder, that contains all the templates for the pages (like the base template for all pages, etc).
 You will also find there the folders for the [static](ecommerce/static) content and the [staticfiles](ecommerce/staticfiles) folder.
